@@ -69,6 +69,7 @@ def collect_test_backends(symbolic=False, layers=False) -> List[_backends.Abstra
                 _backends.TensorflowBackend,
                 _backends.OneFlowBackend,
                 _backends.PaddleBackend,
+                _backends.MindSporeBackend,
                 _backends.CupyBackend,
             ]
         else:
@@ -77,6 +78,7 @@ def collect_test_backends(symbolic=False, layers=False) -> List[_backends.Abstra
                 _backends.ChainerBackend,
                 _backends.OneFlowBackend,
                 _backends.PaddleBackend,
+                _backends.MindSporeBackend,
             ]
     else:
         if not layers:

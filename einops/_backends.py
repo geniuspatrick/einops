@@ -659,3 +659,81 @@ class PaddleBackend(AbstractBackend):
 
     def shape(self, x):
         return tuple(x.shape)
+
+
+class MindSporeBackend(AbstractBackend):
+    framework_name = "mindspore"
+
+    def __init__(self):
+        import mindspore as ms
+        self.ms = ms
+
+    def is_appropriate_type(self, tensor):
+        return isinstance(tensor, self.ms.Tensor)
+
+    def from_numpy(self, x):
+        variable = self.ms.Tensor(x)
+        if self.is_float_type(variable):
+            # attach grad only to floating types
+            variable.requires_grad = True
+        return variable
+
+    def to_numpy(self, x):
+        return x.numpy()
+
+    def arange(self, start, stop):
+        return self.ms.ops.arange(start, stop, dtype=self.ms.int64)
+
+    def shape(self, x):
+        return x.shape
+
+    def reshape(self, x, shape):
+        return x.reshape(shape)
+
+    def transpose(self, x, axes):
+        return x.transpose(axes)
+
+    def reduce(self, x, operation, reduced_axes):
+        if operation == "min":
+            return x.amin(axis=reduced_axes)
+        elif operation == "max":
+            return x.amax(axis=reduced_axes)
+        elif operation == "sum":
+            return x.sum(axis=reduced_axes)
+        elif operation == "mean":
+            return x.mean(axis=reduced_axes)
+        elif operation == "prod":
+            for i in list(sorted(reduced_axes))[::-1]:
+                x = x.prod(axis=i)
+            return x
+        else:
+            raise NotImplementedError("Unknown reduction ", operation)
+
+    def stack_on_zeroth_dimension(self, tensors: list):
+        return self.ms.ops.stack(tensors)
+
+    def add_axis(self, x, new_position):
+        return self.ms.ops.unsqueeze(x, new_position)
+
+    def add_axes(self, x, n_axes, pos2len):
+        repeats = [1] * n_axes
+        for axis_position, axis_length in pos2len.items():
+            x = self.add_axis(x, axis_position)
+            repeats[axis_position] = axis_length
+        return x.tile(tuple(repeats))
+
+    def tile(self, x, repeats):
+        return x.tile(repeats)
+
+    def concat(self, tensors, axis: int):
+        return self.ms.ops.concat(tensors, axis=axis)
+
+    def is_float_type(self, x):
+        return x.dtype in [self.ms.float16, self.ms.float32, self.ms.float64]
+
+    def layers(self):
+        from .layers import mindspore
+        return mindspore
+
+    def einsum(self, pattern, *x):
+        return self.ms.ops.einsum(pattern, *x)

@@ -42,6 +42,7 @@ def main():
         "cupy": ["cupy"],
         "paddle": ["paddlepaddle==0.0.0 -f https://www.paddlepaddle.org.cn/whl/linux/cpu-mkl/develop.html"],
         "oneflow": ["oneflow==0.9.0+cpu -f https://release.oneflow.info"],
+        "mindspore": ["mindspore>=2.0"],
     }
 
     usage = f"""
